@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriScan AI — Mangez mieux, ensemble</title>
+  <meta name="description" content="L'app de nutrition propulsée par l'IA. Scannez vos repas, suivez vos macros, atteignez vos objectifs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #FF6B35;
+      --orange-dim: rgba(255, 107, 53, 0.15);
+      --bg: #080808;
+      --bg2: #111111;
+      --bg3: #1a1a1a;
+      --text: #f5f5f0;
+      --text-sub: rgba(245, 245, 240, 0.55);
+      --text-muted: rgba(245, 245, 240, 0.28);
+      --border: rgba(255, 255, 255, 0.07);
+      --green: #30D158;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(8,8,8,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-logo .logo-icon {
+      font-size: 22px;
+      filter: drop-shadow(0 0 8px rgba(255,107,53,0.6));
+    }
+
+    .nav-cta {
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 100px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .nav-cta:hover {
+      background: #ff8055;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(255,107,53,0.35);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,107,53,0.12) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--orange-dim);
+      border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--orange);
+      margin-bottom: 28px;
+      animation: fadeUp 0.8s ease both;
+    }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(42px, 8vw, 88px);
+      line-height: 1.0;
+      letter-spacing: -3px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.8s ease 0.1s both;
+    }
+
+    .hero h1 span {
+      color: var(--orange);
+      position: relative;
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--text-sub);
+      max-width: 480px;
+      margin: 0 auto 40px;
+      font-weight: 300;
+      animation: fadeUp 0.8s ease 0.2s both;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.8s ease 0.3s both;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+
+    .btn-primary:hover {
+      background: #ff8055;
+      transform: translateY(-2px);
+      box-shadow: 0 16px 40px rgba(255,107,53,0.4);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: var(--text-sub);
+      border: 1px solid var(--border);
+      padding: 16px 32px;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+
+    .btn-secondary:hover {
+      border-color: rgba(255,255,255,0.2);
+      color: var(--text);
+      transform: translateY(-2px);
+    }
+
+    /* ── STATS ── */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-top: 80px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--bg3);
+      animation: fadeUp 0.8s ease 0.4s both;
+    }
+
+    .stat {
+      padding: 24px 40px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat:last-child { border-right: none; }
+
+    .stat-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--orange);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── FEATURES ── */
+    .section {
+      padding: 100px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -2px;
+      margin-bottom: 60px;
+      line-height: 1.1;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(255,107,53,0.05), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(255,107,53,0.2);
+      transform: translateY(-4px);
+    }
+
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--orange-dim);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255,107,53,0.2);
+    }
+
+    .feature-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+
+    /* ── GROUP PLAN ── */
+    .group-section {
+      padding: 80px 24px;
+      background: linear-gradient(180deg, var(--bg) 0%, #0d0a08 50%, var(--bg) 100%);
+    }
+
+    .group-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--bg3);
+      border: 1px solid rgba(255,107,53,0.2);
+      border-radius: 28px;
+      padding: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .group-inner::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255,107,53,0.08), transparent 70%);
+      pointer-events: none;
+    }
+
+    .group-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .group-emoji-display {
+      font-size: 80px;
+      margin-bottom: 20px;
+      display: block;
+      filter: drop-shadow(0 0 30px rgba(255,107,53,0.3));
+    }
+
+    .group-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 12px;
+      line-height: 1.1;
+    }
+
+    .group-subtitle {
+      color: var(--text-sub);
+      font-size: 15px;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .group-features {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .group-feature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+
+    .group-feature-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--orange);
+      flex-shrink: 0;
+    }
+
+    .price-card {
+      background: rgba(255,107,53,0.06);
+      border: 1px solid rgba(255,107,53,0.15);
+      border-radius: 20px;
+      padding: 36px;
+      text-align: center;
+    }
+
+    .price-tag {
+      font-family: 'Syne', sans-serif;
+      font-size: 56px;
+      font-weight: 800;
+      letter-spacing: -3px;
+      color: var(--orange);
+      line-height: 1;
+    }
+
+    .price-period {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      margin-bottom: 8px;
+    }
+
+    .price-annual {
+      font-size: 12px;
+      color: var(--green);
+      margin-bottom: 28px;
+      background: rgba(48,209,88,0.1);
+      border-radius: 100px;
+      padding: 4px 12px;
+      display: inline-block;
+    }
+
+    .members-display {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .member-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--bg3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      margin-left: -8px;
+    }
+
+    .member-avatar:first-child { margin-left: 0; }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      max-width: 600px;
+    }
+
+    .step {
+      display: flex;
+      gap: 24px;
+      position: relative;
+    }
+
+    .step-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .step-num {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--orange-dim);
+      border: 1px solid rgba(255,107,53,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--orange);
+      flex-shrink: 0;
+    }
+
+    .step-line {
+      width: 1px;
+      flex: 1;
+      background: var(--border);
+      margin: 8px 0;
+      min-height: 40px;
+    }
+
+    .step:last-child .step-line { display: none; }
+
+    .step-content {
+      padding-bottom: 40px;
+      padding-top: 8px;
+    }
+
+    .step-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .step-desc {
+      color: var(--text-sub);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      padding: 100px 24px;
+      text-align: center;
+    }
+
+    .cta-box {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 60px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255,107,53,0.12), transparent 70%);
+    }
+
+    .cta-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 12px;
+    }
+
+    .cta-sub {
+      color: var(--text-sub);
+      margin-bottom: 32px;
+      font-size: 15px;
+    }
+
+    .store-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .store-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .store-btn:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+    }
+
+    .store-btn-icon { font-size: 24px; }
+
+    .store-btn-text { text-align: left; }
+    .store-btn-text small { display: block; font-size: 10px; color: var(--text-muted); }
+    .store-btn-text strong { font-size: 14px; font-weight: 500; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: gap;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--text-sub); }
+
+    .footer-copy {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+    }
+
+    .pulse { animation: pulse 3s ease-in-out infinite; }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .stats { flex-direction: column; }
+      .stat { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat:last-child { border-bottom: none; }
+      .group-content { grid-template-columns: 1fr; gap: 32px; }
+      .group-inner { padding: 32px 24px; }
+      footer { flex-direction: column; gap: 20px; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">
+      <span class="logo-icon">🍓</span>
+      NutriScan AI
+    </div>
+    <a href="#download" class="nav-cta">Télécharger l'app</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-badge">
+      <span>🤖</span> Propulsé par Claude AI
+    </div>
+    <h1>Mangez mieux,<br><span>ensemble.</span></h1>
+    <p class="hero-sub">Scannez vos repas en une seconde. Suivez vos macros. Atteignez vos objectifs nutritionnels avec l'IA.</p>
+    <div class="hero-buttons">
+      <a href="#download" class="btn-primary">
+        <span>🍎</span> Disponible sur iOS
+      </a>
+      <a href="#features" class="btn-secondary">
+        Découvrir →
+      </a>
+    </div>
+
+    <div class="stats reveal">
+      <div class="stat">
+        <div class="stat-val">2M+</div>
+        <div class="stat-label">Aliments en base</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">< 3s</div>
+        <div class="stat-label">Analyse IA</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">12</div>
+        <div class="stat-label">Langues</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">5★</div>
+        <div class="stat-label">Note moyenne</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <p class="section-label reveal">Fonctionnalités</p>
+    <h2 class="section-title reveal">Tout ce dont vous<br>avez besoin.</h2>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">📸</div>
+        <div class="feature-title">Scan IA instantané</div>
+        <div class="feature-desc">Photographiez votre repas et obtenez une analyse nutritionnelle complète en moins de 3 secondes grâce à Claude Vision.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🏷️</div>
+        <div class="feature-title">Scanner de codes-barres</div>
+        <div class="feature-desc">Scannez n'importe quel produit alimentaire. Base de données Open Food Facts avec plus de 2 millions de produits.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Suivi des macros</div>
+        <div class="feature-desc">Protéines, glucides, lipides, calories — suivez tout en temps réel avec des graphiques détaillés et des objectifs personnalisés.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🏆</div>
+        <div class="feature-title">Badges & Jalons</div>
+        <div class="feature-desc">Restez motivé avec un système de badges progressif. Débloquez des récompenses en atteignant vos objectifs quotidiens.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">⚖️</div>
+        <div class="feature-title">Suivi du poids</div>
+        <div class="feature-desc">Visualisez votre progression avec des graphiques d'évolution, estimations de date d'objectif et photos de progression.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">👥</div>
+        <div class="feature-title">Abonnement Groupe</div>
+        <div class="feature-desc">Jusqu'à 5 membres sous un seul abonnement. Atteignez vos objectifs ensemble avec des défis et challenges partagés.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GROUP PLAN -->
+  <section class="group-section" id="group">
+    <div class="group-inner reveal">
+      <div class="group-content">
+        <div>
+          <span class="group-emoji-display pulse">👨‍👩‍👧‍👦</span>
+          <h2 class="group-title">Abonnement<br>Groupe</h2>
+          <p class="group-subtitle">Invitez jusqu'à 4 personnes et progressez ensemble. Un seul abonnement pour toute la famille ou vos amis.</p>
+          <div class="group-features">
+            <div class="group-feature">
+              <div class="group-feature-dot"></div>
+              <span>Jusqu'à 5 membres sous un abonnement</span>
+            </div>
+            <div class="group-feature">
+              <div class="group-feature-dot"></div>
+              <span>Scans IA illimités pour tous les membres</span>
+            </div>
+            <div class="group-feature">
+              <div class="group-feature-dot"></div>
+              <span>Suivi des progrès de chaque membre</span>
+            </div>
+            <div class="group-feature">
+              <div class="group-feature-dot"></div>
+              <span>Défis et compétitions entre membres</span>
+            </div>
+            <div class="group-feature">
+              <div class="group-feature-dot"></div>
+              <span>Invitation par email en un clic</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="price-card">
+          <div class="members-display">
+            <div class="member-avatar" style="background:#FF6B35;">👤</div>
+            <div class="member-avatar" style="background:#0A84FF;">👤</div>
+            <div class="member-avatar" style="background:#30D158;">👤</div>
+            <div class="member-avatar" style="background:#FF9F0A;">👤</div>
+            <div class="member-avatar" style="background:#BF5AF2;">👤</div>
+          </div>
+          <div class="price-tag">4,99€</div>
+          <div class="price-period">par mois</div>
+          <div class="price-annual">59,99€ / an — économisez 40%</div>
+          <a href="#download" class="btn-primary" style="width:100%;justify-content:center;">
+            Bientôt disponible 🚀
+          </a>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:16px;">Disponible dans la prochaine mise à jour</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section">
+    <p class="section-label reveal">Comment ça marche</p>
+    <h2 class="section-title reveal">Simple comme<br>bonjour.</h2>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-left">
+          <div class="step-num">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Téléchargez NutriScan AI</div>
+          <div class="step-desc">Disponible sur iOS. Créez votre profil en 2 minutes avec vos objectifs personnalisés.</div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-left">
+          <div class="step-num">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Scannez vos repas</div>
+          <div class="step-desc">Photo, code-barres ou étiquette nutritionnelle — l'IA analyse tout instantanément.</div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-left">
+          <div class="step-num">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Suivez votre progression</div>
+          <div class="step-desc">Consultez vos stats, suivez votre poids, débloquez des badges et atteignez vos objectifs.</div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-left">
+          <div class="step-num">4</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-content">
+          <div class="step-title">Invitez votre groupe</div>
+          <div class="step-desc">Créez un groupe avec vos proches et progressez ensemble avec des défis partagés.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" id="download">
+    <div class="cta-box reveal">
+      <div style="font-size:48px;margin-bottom:20px;">🍓</div>
+      <h2 class="cta-title">Prêt à commencer ?</h2>
+      <p class="cta-sub">Rejoignez des milliers d'utilisateurs qui transforment leur alimentation avec NutriScan AI.</p>
+      <div class="store-buttons">
+        <a href="#" class="store-btn">
+          <div class="store-btn-icon">🍎</div>
+          <div class="store-btn-text">
+            <small>Télécharger sur</small>
+            <strong>App Store</strong>
+          </div>
+        </a>
+        <a href="#" class="store-btn" style="opacity:0.5;cursor:not-allowed;">
+          <div class="store-btn-icon">🤖</div>
+          <div class="store-btn-text">
+            <small>Bientôt sur</small>
+            <strong>Google Play</strong>
+          </div>
+        </a>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:20px;">Gratuit · Aucune carte requise</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">
+      <span>🍓</span> NutriScan AI
+    </div>
+    <div class="footer-links">
+      <a href="#">Confidentialité</a>
+      <a href="#">Conditions</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="footer-copy">© 2026 NutriScan AI</div>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
