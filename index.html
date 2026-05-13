@@ -697,6 +697,23 @@
     }
 
     /* ── RESPONSIVE ── */
+    /* ── ANTI-DÉBORDEMENT GLOBAL (mobile-safe) ── */
+    h1, h2, h3, h4,
+    .hero h1, .section-title, .group-title, .cta-title,
+    .feature-title, .feature-desc,
+    .stat-val, .hero-sub {
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
+
+    /* Empêche les blocs de déborder horizontalement */
+    body, section, .hero, .group-inner, .feature-card, .cta-box {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
     @media (max-width: 768px) {
       nav { padding: 16px 20px; }
       .stats { flex-direction: column; }
@@ -706,6 +723,52 @@
       .group-inner { padding: 32px 24px; }
       footer { flex-direction: column; gap: 20px; text-align: center; }
       .footer-links { flex-wrap: wrap; justify-content: center; }
+
+      /* ── NAV mobile ── */
+      nav { padding: 12px 16px !important; }
+      .nav-logo {
+        font-size: 16px;
+        white-space: nowrap;
+        gap: 8px;
+      }
+      .nav-logo .logo-icon { font-size: 20px; }
+      .nav-cta {
+        padding: 8px 14px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      /* ── Titres fluides ── */
+      .hero h1 { font-size: clamp(36px, 9vw, 56px); line-height: 1.1; }
+      .section-title, .group-title, .cta-title {
+        font-size: clamp(28px, 7vw, 44px);
+        line-height: 1.15;
+      }
+      .hero-sub { font-size: 15px; padding: 0 8px; }
+
+      /* ── Hero padding adapté ── */
+      .hero { padding-left: 20px; padding-right: 20px; }
+      .section { padding-left: 20px; padding-right: 20px; }
+
+      /* ── Boutons hero ── */
+      .hero-buttons { flex-direction: column; width: 100%; }
+      .btn-primary, .btn-secondary {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* ── Très petits écrans (iPhone SE et < 380px) ── */
+    @media (max-width: 380px) {
+      nav { padding: 10px 12px !important; }
+      .nav-logo { font-size: 14px; }
+      .nav-logo .logo-icon { font-size: 18px; }
+      .nav-cta { padding: 7px 10px; font-size: 12px; }
+      .hero h1 { font-size: clamp(28px, 10vw, 42px); }
+      .section-title, .group-title, .cta-title {
+        font-size: clamp(24px, 8vw, 36px);
+      }
+      body { font-size: 15px; }
     }
   </style>
 </head>
