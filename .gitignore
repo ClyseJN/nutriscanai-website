@@ -1,0 +1,16 @@
+# Backups automatiques
+*.bak
+*.bak-*
+*.backup
+*.backup-*
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Env files (au cas où)
+.env*
+!.env.example
